@@ -38,3 +38,24 @@ git add --all
 git commit -am "Initial commit"
 git push -u origin master
 ```
+
+add to Gemfile
+```
+ruby '2.1.2'
+group :production do
+  gem "rails_12factor"
+  gem "pg"
+end
+```
+
+modify Gemfiel
+```
+group :development, :test do
+  gem "sqlite3"
+end
+```
+
+run command
+```
+bundle install
+```
