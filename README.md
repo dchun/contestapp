@@ -1,3 +1,4 @@
+####Chapter 2 - Setting Up
 run commands
 ```
 mkdir contestapp
@@ -48,14 +49,62 @@ group :production do
 end
 ```
 
-modify Gemfiel
+modify Gemfile
 ```
 group :development, :test do
   gem "sqlite3"
 end
 ```
 
-run command
+run commands
 ```
 bundle install
+
+git add --all
+git commit -am "Required Heroku gems"
+git push
+
+heroku create contestapp
+git push heroku master
+heroku run rake db:migrate
+
+heroku open
+```
+####Chapter 3 - Building A Private App
+
+run command
+```
+git checkout -b ch03_01_gem_updates
+```
+
+add to Gemfile inside development and test group
+```
+# Helpful gems
+gem "better_errors" # improves error handling
+gem "binding_of_caller" # used by better errors
+# Testing frameworks
+gem 'rspec-rails' # testing framework
+gem "factory_girl_rails" # use factories, not fixtures
+gem "capybara" # simulate browser activity
+gem "fakeweb"
+# Automated testing
+gem 'guard' # automated execution of test suite upon change
+gem "guard-rspec" # guard integration with rspec
+# Only install the rb-fsevent gem if on Max OSX
+gem 'rb-fsevent' # used for Growl notifications
+```
+
+run commands
+```
+bundle install
+
+rails generate rspec:install
+
+guard init rspec
+
+git add --all
+git commit -am "Added gems for testing"
+git checkout master
+git merge ch03_01_gem_updates
+git push
 ```
