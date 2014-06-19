@@ -108,3 +108,46 @@ git checkout master
 git merge ch03_01_gem_updates
 git push
 ```
+
+make a private app and run commands
+```
+git checkout -b ch03_02_shopify_credentials
+
+rails g scaffold Account shopify_account_url:string shopify_api_key:string shopify_password:string shopify_shared_secret:string
+
+bundle exec rake db:migrate
+bundle exec rake db:migrate RAILS_ENV=test
+
+rails g bootstrap:themed Accounts -f
+
+bundle exec guard
+```
+
+modify app/views/layouts/application.html.erb
+```
+<a class="brand" href="/">Contestapp</a>
+<div class="container-fluid nav-collapse">
+	<ul class="nav">
+		<li><%= link_to "Accounts", accounts_path%></li>
+	</ul>
+</div><!--/.nav-collapse -->
+```
+
+add to app/models/account.rb
+```
+validates_presence_of :shopify_account_url
+validates_presence_of :shopify_api_key
+validates_presence_of :shopify_password
+validates_presence_of :shopify_shared_secret
+```
+
+run commands
+```
+git add --all
+git commit -am "Account model and related files"
+git checkout master
+git merge ch03_02_shopify_credentials
+git push
+```
+
+
