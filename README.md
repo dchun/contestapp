@@ -72,6 +72,7 @@ heroku open
 ```
 ####Chapter 3 - Building A Private App
 
+#####Section 1
 run command
 ```
 git checkout -b ch03_01_gem_updates
@@ -109,6 +110,7 @@ git merge ch03_01_gem_updates
 git push
 ```
 
+#####Section 2
 make a private shopify app and run commands
 ```
 git checkout -b ch03_02_shopify_credentials
@@ -150,6 +152,7 @@ git merge ch03_02_shopify_credentials
 git push
 ```
 
+#####Section 3
 run command
 ```
 git checkout -b ch03_03_shopify_connection
@@ -392,6 +395,7 @@ git merge ch03_03_shopify_connection
 git push
 ```
 
+#####Section 4
 run command
 ```
 git checkout -b ch03_04_product_import
@@ -499,6 +503,7 @@ git merge ch03_04_product_import
 git push
 ```
 
+#####Section 5
 run command
 ```
 git checkout -b ch03_05_order_import
@@ -541,6 +546,7 @@ git merge ch03_05_order_import
 git push
 ```
 
+#####Section 6
 run command
 ```
 git checkout -b ch03_06_ui_cleanup
@@ -583,5 +589,39 @@ git add --all
 git commit -am "UI cleanup"
 git checkout master
 git merge ch03_06_ui_cleanup
+git push
+```
+
+#####Section 7
+run command
+```
+git checkout -b ch03_07_winner_selection
+```
+
+create and add to app/services/contest_results.rb
+```ruby
+class ContestResults
+  def initialize(array)
+    raise ArgumentError.new("array is required") if array.blank?
+    @array = array
+  end
+
+  #Picks <count> winners
+  def results(count=1)
+    if count.to_i < 2
+      @array.sample
+    else
+      @array.sample(count)
+    end 
+  end
+end
+```
+
+run commands
+```
+git add --all
+git commit -am "Random winner selection"
+git checkout master
+git merge ch03_07_winner_selection
 git push
 ```
