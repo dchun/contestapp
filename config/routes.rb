@@ -1,5 +1,9 @@
 Contestapp::Application.routes.draw do
-  resources :accounts
+  resources :accounts do
+    member do
+      get 'test_connection'
+    end
+  end
 
   root 'dashboard#index'
   # The priority is based upon order of creation: first created -> highest priority.
