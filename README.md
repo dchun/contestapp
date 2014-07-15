@@ -531,3 +531,57 @@ add to app/views/layouts/application.html.erb
 ```
 <li><%= link_to "Orders", orders_path %></li>
 ```
+
+run commands
+```
+git add --all
+git commit -am "Shopify connection and related UI"
+git checkout master
+git merge ch03_05_order_import
+git push
+```
+
+run command
+```
+git checkout -b ch03_06_ui_cleanup
+```
+
+modify app/views/layouts/application.html.erb
+```
+<div class="row-fluid">
+     <% if content_for?(:sidebar) %>
+     <div class="span3">
+       <div class="well sidebar-nav">
+         <%= yield(:sidebar) %>
+        </div>
+      </div>
+      <div class="span9">
+        <%= bootstrap_flash %>
+           <%= yield %>
+      </div>
+      <% else %>
+        <div class="span12">
+           <%= bootstrap_flash %>
+              <%= yield %>
+           </div>
+      <% end %>
+</div>
+```
+
+add to app/views/dashboard/index.html.erb
+```
+<%- content_for :sidebar do-%>
+	<h4>Welcome!</h4>
+	<p>This is the Dashboard for your account.  You'll be able to
+	view past contest results, as well as create new ones.</p>
+<%- end -%>
+```
+
+run commands
+```
+git add --all
+git commit -am "UI cleanup"
+git checkout master
+git merge ch03_06_ui_cleanup
+git push
+```
