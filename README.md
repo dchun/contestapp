@@ -498,3 +498,36 @@ git checkout master
 git merge ch03_04_product_import
 git push
 ```
+
+run command
+```
+git checkout -b ch03_05_order_import
+```
+
+run commands
+```
+rails g scaffold Order number:string email:string first_name:string last_name:string shopify_order_id:integer order_date:datetime total:float line_item_count:integer financial_status:string
+       
+rails g model OrderItem order_id:integer:index variant_id:integer:index shopify_product_id:integer:integer shopify_variant_id:integer:index unit_price:float quantity:integer
+
+bundle exec rake db:migrate
+       
+bundle exec rake db:migrate RAILS_ENV=test
+
+rails g bootstrap:themed Orders -f
+```
+
+add to app/models/order.rb
+```ruby
+  has_many :order_items
+```
+
+add to app/models/order_item.rb
+```ruby
+  belongs_to :order
+```
+
+add to app/views/layouts/application.html.erb
+```
+<li><%= link_to "Orders", orders_path %></li>
+```
