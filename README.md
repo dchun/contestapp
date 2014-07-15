@@ -378,9 +378,123 @@ add to app/controllers/accounts_controller.rb
 ```
 
 add to app/views/account/show.html.erb
-```ruby
+```
   <%= link_to "Test Connection", test_connection_account_path(@account),
               :class => 'btn' %>
 ```
 
+run commands
+```
+git add --all
+git commit -am "Shopify connection and related UI"
+git checkout master
+git merge ch03_03_shopify_connection
+git push
+```
 
+run command
+```
+git checkout -b ch03_04_product_import
+```
+
+run commands
+```
+rails g scaffold Product name:string shopify_product_id:integer last_shopify_sync:datetime
+
+rails g scaffold Variant product_id:integer:index shopify_variant_id:integer option1:string option2:string option3:string sku:string barcode:string price:float last_shopify_sync:datetime
+
+bundle exec rake db:migrate
+       
+bundle exec rake db:migrate RAILS_ENV=test
+
+rails g bootstrap:themed Products -f
+
+rails g bootstrap:themed Variants -f
+```
+
+add to app/views/layouts/application.html.erb
+```
+<ul class="nav">
+	<li><%= link_to "Products", products_path  %></li>
+	<li><%= link_to "Accounts", accounts_path  %></li>
+</ul>
+```
+
+modify app/models/product.rb
+```ruby
+  has_many :variants
+```
+
+modify app/models/variant.rb
+```ruby
+  belongs_to :product
+```
+
+modify config/routes.rb
+```ruby
+resources :products do
+  resources :variants
+end
+```
+
+add to app/controllers/variants_controller.rb
+```ruby
+  before_action :set_product  
+```
+```ruby
+  def set_product
+    @product = Product.find(params[:product_id])
+  end
+```
+
+modify app/controllers/variants_controller.rb
+```ruby
+  def set_variant
+    @variant = @product.variants.find(params[:id])
+  end
+```
+
+modify config/routes/rb
+```ruby
+resources :products do
+  collection do
+    get 'import'
+  end
+  resources :variants
+end
+```
+
+add to app/controllers/products_controller.rb
+```ruby
+# GET /products/import
+# GET /products/import.json
+  def import
+  # For now we'll use the first Account in the database
+    account = Account.first
+  # Instantiate the ShopifyIntegration class
+    shopify_integration = ShopifyIntegration.new(
+    api_key: account.shopify_api_key,
+    shared_secret: account.shopify_shared_secret,
+    url: account.shopify_account_url,
+    password: account.shopify_password)
+    respond_to do |format|
+      shopify_integration.connect
+      result = shopify_integration.import_products
+      format.html { redirect_to ({action: :index}), notice: "#{result[:created].to_i} created, #{result[:updated]} updated, #{result[:failed]} failed." }
+    end 
+  end
+```
+
+add to app/views/products/index.html.erb
+```
+<p><a href="<%= import_products_path %>">Import Products</a></p>
+```
+
+run commands
+```
+git add --all
+git commit -am "Shopify Product Import"
+git checkout master
+git merge ch03_04_product_import
+git push
+```
