@@ -5,21 +5,17 @@ ruby '2.1.2'
 gem 'rails', '4.0.3'
 
 group :production do
- gem "rails_12factor"
- gem "pg" 
-end
-
-group :developemnt do
-  gem "sqlite3"
+  gem "rails_12factor"
+  gem "pg" 
 end
 
 # Use sqlite3 as the database for Active Record
 group :development, :test do
+  gem "sqlite3"
+
   # Testing frameworks
   gem 'rspec-rails' # testing framework
-end
 
-group :test do
   # Helpful gems
   gem "better_errors" # improves error handling
   gem "binding_of_caller" # used by better errors
