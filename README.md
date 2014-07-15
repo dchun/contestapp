@@ -886,3 +886,12 @@ replace app/views/dashboard/index.html.erb
   </tbody>
 </table>
 ```
+
+run commands
+```
+git add --all
+git commit -am "Contest Functionality"
+git checkout master
+git merge ch03_08_contests
+git push
+```
