@@ -625,3 +625,264 @@ git checkout master
 git merge ch03_07_winner_selection
 git push
 ```
+
+#####Section 8
+run command
+```
+git checkout -b ch03_08_contests
+```
+
+modify app/views/dashboard/index.html.erb
+```
+<%- content_for :sidebar do -%>
+  <h4>New Contest</h4>
+  <p>Use the form below to run a new Contest. Fields marked
+   with * are required.</p>
+  <form>
+    <div class="control-group">
+      <label for="name">Contest Name *</label>
+      <div class="controls">
+        <input type="text" class="text_field" id="name"
+        class="name" required/>
+      </div>
+    </div>
+    <div class="control-group">
+      <label for="name">Type *</label>
+      <div class="controls">
+        <select id="product" name="product" required>
+          <option>Any Product</option>
+          <optgroup label="Specific Product">
+            <option>Product A</option>
+            <option>Product B</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+    <div class="control-group">
+      <label for="name">Order Date Range (optional)</label>
+      <div class="controls">
+        <input type="text" class="text_field" id="from-
+        date" name="from-date"/> to
+        <input type="text" class="text_field" id="to-date"
+        name="to-date"/>
+      </div>
+    </div>
+    <div class="control-group">
+      <label for="name">Max # (optional)</label>
+      <div class="controls">
+        <input type="text" class="text_field" id="limit"
+        name="limit"/>
+      </div>
+    </div>
+    <div class="form-actions">
+      <input type="submit" value="Submit" class="btn"/>
+      <%= link_to t('.cancel', :default =>
+        t("helpers.links.cancel")),
+        dashboard_index_path, :class => 'btn' %>
+    </div>
+  </form>
+<%- end -%>
+
+<h1>Contests</h1>
+<table class="table table-striped">
+  <thead> 
+    <tr>
+      <th>Name</th>
+      <th>Criteria</th>
+      <th>Winner</th>
+      <th>Date</th>
+    </tr>
+  </thead>
+  <tbody>
+   <tr>
+     <td>Customer Appreciation Giveaway</td>
+     <td>Purchase made within last 30 days</td>
+     <td>Order #1010, John Doe</td>
+     <td>October 22, 2013</td>
+   </tr>
+ </tbody>
+</table>
+```
+
+add to config/routes.rb
+```ruby
+get "dashboard/index"
+```
+
+run commands
+```
+rails g model Contest name:string product_id:integer start_date:datetime end_date:datetime max_results:integer order_id:integer:index
+
+bundle exec rake db:migrate
+
+bundle exec rake db:migrate RAILS_ENV=test
+```
+
+add to app/models/contest.rb
+```ruby
+  belongs_to :order
+  validates_presence_of :name
+  def criteria
+    results = []
+    results << "Product Name: #{product_name}" if
+    product_name.present?
+    results << "Start Date: #{I18n.l start_date.to_date,
+    format: :short}" if start_date.present?
+    results << "End Date: #{I18n.l end_date.to_date,
+    format: :short}" if end_date.present?
+    results << "Max #: #{max_results}" if
+    max_results.present?
+    return results.join(', ')
+  end
+```
+
+add to app/models/order.rb
+```ruby
+  # This method constructs the query based on
+  # the passed-in parameters
+  def self.candidate_list(params={})
+    params[:order] ||= "order_date asc"
+    orders = order(params[:order]).includes(:order_items)
+    if params[:limit].present?
+      orders = orders.limit(params[:limit].to_i)
+    end
+    if params[:product_id].present?
+      orders = orders.where("order_items.shopify_product_id" =>
+        params[:product_id].to_i)
+    end
+    if params[:start_date].present?
+      orders = orders.where(["orders.order_date >= ?",
+        params[:start_date]])
+    end
+    if params[:end_date].present?
+      orders = orders.where(["orders.order_date <= ?",
+        params[:end_date]])
+    end
+    
+    # .pluck returns an array containing the specified field
+    return orders.pluck(:id).uniq
+  end
+```
+
+modify app/controllers/dashboard_controller.rb
+```ruby
+  def index
+    # Load past results in reverse order
+    @contests = Contest.order("created_at desc")
+         
+    # Instantiate a new Contest so the form loads properly
+    @contest = Contest.new
+
+    # Load the Products we want to use for Contests
+    @products = Product.all.order(:name)
+  end
+
+  # This method creates a Contest and returns
+  # the winner(s) in the notice message
+  def create_contest
+    @contest = Contest.new(contest_params)
+  
+    # Store the name of the product for easier readability
+    @contest.product_name = Product.find_by_shopify_product_id(contest_params[:product_id]).try(:name) if contest_params[:product_id].present?
+    respond_to do |format|
+      if @contest.save
+        # Pick a winner
+        candidates = Order.candidate_list(params)
+        contest_results = ContestResults.new(candidates)
+           
+        # Save the winner
+        @contest.update_attribute(:order_id, contest_results.results)
+        format.html { redirect_to root_path, notice: "Contest Winner: <a href='#{order_path(@contest.order)}'>#{@contest.order.email}</a>" }
+        format.json { render action: 'show', status: :created, location: @contest }
+      else
+        format.html { redirect_to root_path, alert: "Unable to create a Contest" }
+        format.json { render json: @contest.errors, status: :unprocessable_entity }
+      end 
+    end
+  end
+
+private
+  def contest_params
+    params.require(:contest).permit(:name, :product_id, :start_date, :end_date, :max_results, :order_id)
+  end
+```
+
+add to config/routes.rb
+```ruby
+post "create_contest" => 'dashboard#create_contest'
+```
+
+replace app/views/dashboard/index.html.erb
+```ruby
+<%- model_class = Contest -%>
+<%- content_for :sidebar do -%>
+<h4>New Contest</h4>
+<p>Use the form below to run a new Contest. Fields marked with * are required.</p>
+  <%= form_for @contest, :url => create_contest_path do |f| %>
+    <div class="control-group">
+       <%= f.label :name, "Contest Name *"  %>
+      <div class="controls">
+        <%= f.text_field :name, :class => 'text_field', :required => true %>
+      </div>
+    </div>
+    <div class="control-group">
+      <%= f.label :product_id, "Type *" %>
+      <div class="controls">
+        <select id="contest_product_id" name="contest[product_id]" required="required">
+          <option>Any Product</option>
+          <optgroup label="Specific Product">
+            <%- @products.each do |product| -%>
+              <option value="<%= product.shopify_product_id %>"><%= product.name %></option>
+            <%- end -%>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+    <div class="control-group">
+      <%= f.label :start_date, "Order Date Range (optional)" %>
+      <div class="controls">
+        <%= f.text_field :start_date, :class => 'text_field' %>
+        <%= f.text_field :end_date, :class => 'text_field' %>
+      </div>
+    </div>
+    <div class="control-group">
+      <%= f.label :max_results, "Max # (optional)" %>
+      <div class="controls">
+        <%= f.text_field :max_results, :class => 'text_field' %>
+      </div>
+    </div>
+    <div class="form-actions">
+      <input type="submit" value="Submit" class="btn"/>
+      <%= link_to t('.cancel', :default => t("helpers.links.cancel")),
+      root_path, :class => 'btn' %>
+    </div>
+    <!-- End form -->
+  <%- end -%>
+  <!-- End sidebar -->
+<%- end -%>
+<h1>Contests</h1>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Criteria</th>
+      <th>Winner</th>
+      <th>Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @contests.each do |contest| %>
+    <tr>
+      <td><%= contest.name %></td>
+      <td><%= contest.criteria %></td>
+      <% if contest.order.present? %>
+      <td>Order <%= link_to contest.order.number, order_path(contest.order) %>, <%= contest.order.first_name %> <%= contest.order.last_name %> (<%= mail_to contest.order.email, contest.order.email %>)</td>
+      <% else %>
+        <td>Error picking winner</td>
+      <% end %>
+      <td><%=l contest.created_at, format: :long %></td>
+    </tr>
+    <% end %>
+  </tbody>
+</table>
+```
