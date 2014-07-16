@@ -26,4 +26,7 @@ Contestapp::Application.configure do
   # This option may cause significant delays in view rendering with a large
   # number of complex assets.
   config.assets.debug = true
+  SHOPIFY_API_KEY = "f0797c0d682c043adf2ba6e065a854b4"
+  SHOPIFY_SHARED_SECRET = "ff2c86c51c5d5a251ce95ac8db1b7805"
+  DOMAIN = "http://localhost:3000"
 end

@@ -1,30 +1,58 @@
 class ShopifyIntegration
 
-  attr_accessor :api_key, :shared_secret, :url, :password
-
+  attr_accessor :url, :password
+  
   def initialize(params)
-    # Ensure that all the parameters are passed in
-    %w{api_key shared_secret url password}.each do |field|
-      raise ArgumentError.new("params[:#{field}] is required") if params[field.to_sym].blank?
-
+    # Ensure that all the parameters are passed in %w{url password}.each do |field|
+    raise ArgumentError.new("params[:#{field}] is required") 
+      if params[field.to_sym].blank?
       # If present, then set as an instance variable
       instance_variable_set("@#{field}", params[field.to_sym])
     end
   end
-
-  # Uses the provided credentials to create an active Shopify session
+     
+  # Uses the provided credentials to connect to Shopify
   def connect
-
     # Initialize the gem
-    ShopifyAPI::Session.setup({api_key: @api_key, secret: @shared_secret})
-
+    ShopifyAPI::Session.setup({
+      api_key: SHOPIFY_API_KEY,
+      secret: SHOPIFY_SHARED_SECRET
+    })
+    
     # Instantiate the session
     session = ShopifyAPI::Session.new(@url, @password)
-
+  
     # Activate the Session so that requests can be made
     return ShopifyAPI::Base.activate_session(session)
-
   end
+
+# Establish connection as private app
+
+  # attr_accessor :api_key, :shared_secret, :url, :password
+
+  # def initialize(params)
+  #   # Ensure that all the parameters are passed in
+  #   %w{api_key shared_secret url password}.each do |field|
+  #     raise ArgumentError.new("params[:#{field}] is required") if params[field.to_sym].blank?
+
+  #     # If present, then set as an instance variable
+  #     instance_variable_set("@#{field}", params[field.to_sym])
+  #   end
+  # end
+
+  # # Uses the provided credentials to create an active Shopify session
+  # def connect
+
+  #   # Initialize the gem
+  #   ShopifyAPI::Session.setup({api_key: @api_key, secret: @shared_secret})
+
+  #   # Instantiate the session
+  #   session = ShopifyAPI::Session.new(@url, @password)
+
+  #   # Activate the Session so that requests can be made
+  #   return ShopifyAPI::Base.activate_session(session)
+
+  # end
 
   def import_orders
 

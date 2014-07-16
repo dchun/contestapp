@@ -77,4 +77,7 @@ Contestapp::Application.configure do
 
   # Use default logging formatter so that PID and timestamp are not suppressed.
   config.log_formatter = ::Logger::Formatter.new
+  SHOPIFY_API_KEY = ENV["SHOPIFY_API_KEY"]
+  SHOPIFY_SHARED_SECRET = ENV["SHOPIFY_SHARED_SECRET"]
+  DOMAIN = ENV["DOMAIN"]
 end
